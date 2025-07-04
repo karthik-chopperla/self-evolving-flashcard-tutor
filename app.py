@@ -1,40 +1,39 @@
 import streamlit as st
-from data.flashcard_generator import FlashcardManager
 from ui.display import quiz_interface, display_progress
-from utils.session_planner import suggest_daily_goal, get_motivational_phrase
+from data.flashcard_generator import FlashcardManager
 
-# Initialize FlashcardManager
-manager = FlashcardManager(autosave=True)
-flashcards = manager.get_all_flashcards()
+# Initialize session state
+if "manager" not in st.session_state:
+    st.session_state.manager = FlashcardManager()
 
-# Page Setup
-st.set_page_config(page_title="🧠 Flashcard Tutor", layout="wide")
+manager = st.session_state.manager
+
 st.title("🧠 Self-Evolving Flashcard Tutor")
 st.caption("100% AI-driven spaced repetition learning system (no APIs, no static data)")
 
-# Sidebar Input: Add New Flashcard
+# Sidebar: Add Flashcard
 st.sidebar.header("➕ Add a Flashcard")
 with st.sidebar.form(key="add_card"):
-    q = st.text_input("Front (Question)", "")
-    a = st.text_input("Back (Answer)", "")
+    question = st.text_input("Front (Question)")
+    answer = st.text_input("Back (Answer)")
     submitted = st.form_submit_button("Add")
-    if submitted and q.strip() and a.strip():
-        manager.add_flashcard(q.strip(), a.strip())
-        st.sidebar.success("Flashcard added!")
+    if submitted and question and answer:
+        manager.add_flashcard(question, answer)
+        st.success("Flashcard added!")
 
-# Sidebar Options
-st.sidebar.markdown("---")
-mode = st.sidebar.radio("📌 Mode", options=["Normal", "Focus"], index=0)
-show_progress = st.sidebar.checkbox("📊 Show Progress", value=True)
-show_goal = st.sidebar.checkbox("🎯 Daily Goal + Motivation", value=True)
+# Sidebar: Mode Switch
+st.sidebar.header("📌 Mode")
+mode_option = st.sidebar.radio("Choose Review Mode", options=["Normal", "Focus"])
+mode = "focus" if mode_option == "Focus" else "normal"
 
-# Main App
-if show_goal:
-    st.subheader("🎯 Today's Smart Goal")
-    st.info(suggest_daily_goal(flashcards))
-    st.success(get_motivational_phrase())
+# Display Quiz Interface
+quiz_interface(manager, mode=mode)
 
-if show_progress:
-    display_progress(flashcards)
+# Smart Goal
+st.markdown("### 🎯 Today's Smart Goal")
+st.markdown(f"🎯 Goal: Review all {len(manager.flashcards)} cards today!")
 
-quiz_interface(manager, mode=mode.lower())
+# Display Progress Chart
+display_progress(manager.flashcards)
+
+st.markdown("💡 Repetition creates recall. Keep going!")

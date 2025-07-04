@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from logic.spaced_repetition import calculate_next_review_time
 
 def update_flashcard_after_feedback(manager, card_id, correct):
-    # Find the flashcard by ID
+    # Find the flashcard
     flashcard = next((c for c in manager.flashcards if c["id"] == card_id), None)
     if not flashcard:
         return
@@ -13,10 +13,10 @@ def update_flashcard_after_feedback(manager, card_id, correct):
     if correct:
         flashcard["correct"] += 1
     else:
-        flashcard["correct"] = max(flashcard["correct"] - 1, 0)  # Optional: penalize slightly
+        flashcard["correct"] = max(flashcard["correct"] - 1, 0)
 
-    # Calculate new next review time
+    # Calculate next review time
     flashcard["next_review"] = calculate_next_review_time(flashcard).isoformat()
 
-    # Save updates
+    # Save updated flashcards
     manager.save_flashcards()
