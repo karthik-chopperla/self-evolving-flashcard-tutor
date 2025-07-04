@@ -1,22 +1,19 @@
-from logic.spaced_repetition import calculate_next_review_time, calculate_memory_score
 from datetime import datetime
+from logic.spaced_repetition import calculate_memory_score
 
+def get_next_flashcard(flashcards, mode="normal", force_all=False):
+    now = datetime.utcnow()
 
-def prioritize_flashcards(flashcards, focus_mode=False):
-    """
-    Sorts flashcards by review urgency.
-    If focus_mode=True, only returns struggling cards (memory_score < 50).
-    """
-    review_list = []
+    candidates = []
+    for card in flashcards:
+        if force_all or card["last_reviewed"] is None or now >= datetime.fromisoformat(card["next_review"]):
+            candidates.append(card)
 
-    for i, card in enumerate(flashcards):
-        due_time = calculate_next_review_time(card)
-        memory_score = calculate_memory_score(card)
-        is_due = due_time <= datetime.now()
+    if mode == "focus":
+        candidates = [c for c in candidates if calculate_memory_score(c) < 50]
 
-        if is_due and (not focus_mode or memory_score < 50):
-            review_list.append((i, memory_score))
+    if not candidates:
+        return None
 
-    # Sort: lowest memory score = highest priority
-    sorted_list = sorted(review_list, key=lambda x: x[1])
-    return [i for i, _ in sorted_list]
+    candidates.sort(key=lambda c: calculate_memory_score(c))
+    return candidates[0]

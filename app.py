@@ -10,7 +10,7 @@ flashcards = manager.get_all_flashcards()
 # Page Setup
 st.set_page_config(page_title="🧠 Flashcard Tutor", layout="wide")
 st.title("🧠 Self-Evolving Flashcard Tutor")
-st.caption("100% AI-driven spaced repetition learning system (no APIs, no static data)")
+st.caption("100% AI-powered spaced repetition learning system")
 
 # Sidebar Input: Add New Flashcard
 st.sidebar.header("➕ Add a Flashcard")
@@ -22,13 +22,21 @@ with st.sidebar.form(key="add_card"):
         manager.add_flashcard(q.strip(), a.strip())
         st.sidebar.success("Flashcard added!")
 
-# Sidebar Options
+# 🛠️ Admin Options
+st.sidebar.markdown("---")
+if st.sidebar.button("⚠️ Reset All Flashcards"):
+    manager.reset_flashcards()
+    st.sidebar.warning("All flashcards deleted. App will refresh.")
+    st.experimental_rerun()
+
+# Sidebar Controls
 st.sidebar.markdown("---")
 mode = st.sidebar.radio("📌 Mode", options=["Normal", "Focus"], index=0)
+force_show = st.sidebar.checkbox("🔁 Force Show All Cards (Ignore Timing)", value=False)
 show_progress = st.sidebar.checkbox("📊 Show Progress", value=True)
 show_goal = st.sidebar.checkbox("🎯 Daily Goal + Motivation", value=True)
 
-# Main App
+# Main Area
 if show_goal:
     st.subheader("🎯 Today's Smart Goal")
     st.info(suggest_daily_goal(flashcards))
@@ -37,4 +45,4 @@ if show_goal:
 if show_progress:
     display_progress(flashcards)
 
-quiz_interface(manager, mode=mode.lower())
+quiz_interface(manager, mode=mode.lower(), force_show_all=force_show)
