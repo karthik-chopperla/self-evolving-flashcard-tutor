@@ -4,7 +4,7 @@ from logic.feedback_loop import update_flashcard_after_feedback
 from logic.hint_generator import generate_hint
 from logic.adaptive_engine import prioritize_flashcards
 from utils.memory_score import calculate_memory_score
-import random
+
 
 def quiz_interface(manager, mode="normal"):
     st.subheader("🧠 Flashcard Quiz")
@@ -15,41 +15,38 @@ def quiz_interface(manager, mode="normal"):
         st.info("Please add some flashcards first.")
         return
 
-    # Prioritize which flashcards to quiz based on the mode
     prioritized_cards = prioritize_flashcards(flashcards, mode=mode)
-    
+
     if not prioritized_cards:
         st.success("🎉 No cards due for review right now.")
         return
 
-    # Pick the top-priority card
     card = prioritized_cards[0]
     st.markdown(f"**❓ Question:** {card['question']}")
 
-    show_hint = st.checkbox("🔍 Show Hint")
-    if show_hint:
+    if st.checkbox("💡 Show Hint"):
         st.markdown(f"**Hint:** {generate_hint(card['answer'])}")
 
-    show_answer = st.button("Show Answer")
-    if show_answer:
+    if st.button("👁️ Show Answer"):
         st.markdown(f"**✅ Answer:** {card['answer']}")
 
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("✅ Correct"):
             update_flashcard_after_feedback(manager, card["id"], correct=True)
-            st.experimental_rerun()
+            st.rerun()
+
     with col2:
         if st.button("❌ Incorrect"):
             update_flashcard_after_feedback(manager, card["id"], correct=False)
-            st.experimental_rerun()
+            st.rerun()
+
     with col3:
         if st.button("🔁 Remind Me Later"):
-            # Just rerun without updating
-            st.experimental_rerun()
+            st.rerun()
 
-def display_progress(manager):
-    flashcards = manager.flashcards
+
+def display_progress(flashcards):
     if not flashcards:
         st.info("No flashcards to display progress yet.")
         return
